@@ -19,7 +19,7 @@ namespace Session2.Controllers
         public IActionResult Login([FromBody] UserLogin userLog)
         {
             string q = $"EXECUTE usp_Login '{userLog.Username}','{userLog.Password}'";
-            DataTable dt = new DataTable();
+            DataTable dt = new();
             try
             {
                 new SqlDataAdapter(q, _conn).Fill(dt);
@@ -47,6 +47,36 @@ namespace Session2.Controllers
 
         }
 
+        [HttpGet]
+        [Route("Articles")]
+        public IActionResult GetArticles([FromQuery] int id)
+        {
+            string q = "EXECUTE usp_GetItemsByUserId " + id;
+            List<BasicArticle> articles = new();
+            DataTable dt = new();
+            try
+            {
+                new SqlDataAdapter(q, _conn).Fill(dt);
+                foreach (DataRow item in dt.Rows)
+                {
+                    articles.Add(
+                        new BasicArticle
+                        {
+                            ID = int.Parse(item["ID"].ToString()),
+                            Title = item["Title"].ToString() ?? "Unknown",
+                            LastDate = item["LastDate"].ToString() ?? "Unknown",
+                        }
+                        );
+                }
+                return Ok(new Response("Obtenido correctamente", articles));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new Response("Hubo un error", ex.Message));
+            }
+
+
+        }
 
 
 
